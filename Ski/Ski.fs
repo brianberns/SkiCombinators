@@ -57,8 +57,10 @@ module Ski =
                 None :: nodeOpts
             | ')' ->
                 match nodeOpts with
-                    | Some x :: Some y :: tail ->
+                    | Some y :: Some x :: tail ->
                         Some (Node (x, y)) :: tail
+                    | Some x :: None :: tail ->
+                        Some x :: tail
                     | _ -> failwith "Unexpected"
             | c ->
                 match nodeOpts with
