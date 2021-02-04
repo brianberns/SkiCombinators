@@ -43,3 +43,32 @@ module Ski =
                         loop' (Node (x', y'))
 
         loop Set.empty ski
+
+    let parse (str : string) =
+
+        let fromChar = function
+            | 'I' -> I
+            | 'K' -> K
+            | 'S' -> S
+            | c -> failwithf "Unexpected character: %c" c
+
+        let step nodeOpts = function
+            | '(' ->
+                None :: nodeOpts
+            | ')' ->
+                match nodeOpts with
+                    | Some x :: Some y :: tail ->
+                        Some (Node (x, y)) :: tail
+                    | _ -> failwith "Unexpected"
+            | c ->
+                match nodeOpts with
+                    | Some node :: tail ->
+                        Some (Node (node, fromChar c)) :: tail
+                    | None :: tail ->
+                        Some (fromChar c) :: tail
+                    | [] -> failwith "Unexpected"
+
+        ([None], str)
+            ||> Seq.fold step
+            |> List.exactlyOne
+            |> Option.get
