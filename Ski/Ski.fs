@@ -26,21 +26,20 @@ module Ski =
     let eval ski =
 
         let rec loop seen ski =
-
             if seen |> Set.contains ski then ski
             else
-                let loop = loop (seen |> Set.add ski)
+                let loop' = seen |> Set.add ski |> loop
                 match ski with
                     | I -> I
                     | K -> K
                     | S -> S
-                    | Node (I, x) -> loop x
-                    | Node (Node (K, x), _) -> loop x
-                    | Node (Node (Node (S, x), y), z) ->
-                        loop (Node (Node (x, z), Node (y, z)))
+                    | Node (I, x) -> loop' x               // identity: fun x -> x
+                    | Node (Node (K, x), _) -> loop' x     // constant: fun x y -> x
+                    | Node (Node (Node (S, x), y), z) ->   // substitution: fun x y z -> x z (y z)
+                        loop' (Node (Node (x, z), Node (y, z)))
                     | Node (x, y) ->
-                        let x' = loop x
-                        let y' = loop y
-                        loop (Node (x', y'))
+                        let x' = loop' x
+                        let y' = loop' y
+                        loop' (Node (x', y'))
 
         loop Set.empty ski
