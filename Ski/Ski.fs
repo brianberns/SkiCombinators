@@ -1,14 +1,27 @@
 ﻿namespace Ski
 
+/// A combinatory logic equivalent to the untyped lambda
+/// calculus.
 /// https://en.wikipedia.org/wiki/SKI_combinator_calculus
 [<StructuredFormatDisplay("{String}")>]
 type Ski =
+
+    /// Identity function.
     | I
+
+    /// Constant function.
     | K
+
+    /// "Substitution" function.
     | S
+
+    /// Internal node.
     | Node of Ski * Ski
+
+    /// Arbitrary variable.
     | Variable of name : string
 
+    /// Pretty-printing.
     member ski.String =
         match ski with
             | I -> "I"
@@ -21,11 +34,13 @@ type Ski =
             | Node (x, y) -> $"{x.String}({y.String})"
             | Variable str -> str
 
+    /// Pretty-printing.
     override this.ToString() =
         this.String
 
 module Ski =
 
+    /// Evaluates the given combinator.
     let eval ski =
 
         let rec loop seen ski =
@@ -45,7 +60,12 @@ module Ski =
 
         loop Set.empty ski
 
-    let parse (str : string) =
+    /// Pretty-printing.
+    let toString (ski : Ski) =
+        ski.String
+
+    /// Tries to parse a combinator from the given string.
+    let tryParse (str : string) =
 
         let fromChar = function
             | 'I' -> I
@@ -54,24 +74,53 @@ module Ski =
             | c -> Variable (string c)
 
         let step nodeOpts = function
+
+                // start a new level
             | '(' ->
-                None :: nodeOpts
+                Ok (None :: nodeOpts)
+
+                // finish the current level
             | ')' ->
                 match nodeOpts with
+
+                        // combine current level with previous level
                     | Some y :: Some x :: tail ->
-                        Some (Node (x, y)) :: tail
+                        Ok (Some (Node (x, y)) :: tail)
+
+                        // replace previous level
                     | Some x :: None :: tail ->
-                        Some x :: tail
-                    | _ -> failwith "Unexpected"
+                        Ok (Some x :: tail)
+
+                    | _ -> Error "Extra closing paren"
+
+                // process the given character
             | c ->
                 match nodeOpts with
-                    | Some node :: tail ->
-                        Some (Node (node, fromChar c)) :: tail
-                    | None :: tail ->
-                        Some (fromChar c) :: tail
-                    | [] -> failwith "Unexpected"
 
-        ([None], str)
-            ||> Seq.fold step
-            |> List.exactlyOne
-            |> Option.get
+                        // combine character with current node
+                    | Some node :: tail ->
+                        Ok (Some (Node (node, fromChar c)) :: tail)
+
+                        // create a new node
+                    | None :: tail ->
+                        Ok (Some (fromChar c) :: tail)
+
+                    | [] -> Error "Unexpected"
+
+        let result =
+            (Ok [None], str)
+                ||> Seq.fold (fun result c ->
+                    match result with
+                        | Ok nodeOpts -> step nodeOpts c
+                        | _ -> result)
+        match result with
+            | Ok nodeOpts ->
+                match nodeOpts with
+                    | [ nodeOpt ] ->
+                        nodeOpt
+                            |> Option.map Ok
+                            |> Option.defaultWith (fun () ->
+                                Error "Empty expression")
+                    | [] -> Error "Unexpected"
+                    | _ -> Error "Missing closing paren"
+            | Error msg -> Error msg
