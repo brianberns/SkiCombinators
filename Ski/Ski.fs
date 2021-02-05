@@ -7,6 +7,7 @@ type Ski =
     | K
     | S
     | Node of Ski * Ski
+    | Variable of name : string
 
     member ski.String =
         match ski with
@@ -16,7 +17,9 @@ type Ski =
             | Node (x, I) -> $"{x.String}I"
             | Node (x, K) -> $"{x.String}K"
             | Node (x, S) -> $"{x.String}S"
+            | Node (x, Variable name) -> $"{x.String}{name}"
             | Node (x, y) -> $"{x.String}({y.String})"
+            | Variable str -> str
 
     override this.ToString() =
         this.String
@@ -30,9 +33,6 @@ module Ski =
             else
                 let loop' = seen |> Set.add ski |> loop
                 match ski with
-                    | I -> I
-                    | K -> K
-                    | S -> S
                     | Node (I, x) -> loop' x               // identity: fun x -> x
                     | Node (Node (K, x), _) -> loop' x     // constant: fun x y -> x
                     | Node (Node (Node (S, x), y), z) ->   // substitution: fun x y z -> x z (y z)
@@ -41,6 +41,7 @@ module Ski =
                         let x' = loop' x
                         let y' = loop' y
                         loop' (Node (x', y'))
+                    | _ -> ski
 
         loop Set.empty ski
 
@@ -50,7 +51,7 @@ module Ski =
             | 'I' -> I
             | 'K' -> K
             | 'S' -> S
-            | c -> failwithf "Unexpected character: %c" c
+            | c -> Variable (string c)
 
         let step nodeOpts = function
             | '(' ->
