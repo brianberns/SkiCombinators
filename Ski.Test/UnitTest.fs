@@ -1,7 +1,38 @@
 namespace Ski.Test
 
 open Microsoft.VisualStudio.TestTools.UnitTesting
+open FsCheck
 open Ski
+
+type Generators() =
+
+    static let genTree =
+        let genVariable =
+            ['a' .. 'z']
+                |> Seq.map (Variable >> Gen.constant)
+                |> Gen.oneof
+        let genLeaf =
+            [
+                10, Gen.constant S
+                10, Gen.constant K
+                10, Gen.constant I
+                1, genVariable
+            ] |> Gen.frequency
+        let genNode gen =
+            Gen.map2 (fun x y ->
+                Node (x, y))
+                gen
+                gen
+        let rec loop size =
+            match size with
+                | 0 -> genLeaf
+                | n when n > 0 ->
+                    loop (size / 2) |> genNode
+                | _ -> failwith "Unexpected"
+        Gen.sized loop
+
+    static member Ski() =
+        Arb.fromGen genTree
 
 [<TestClass>]
 type UnitTest () =
@@ -77,3 +108,15 @@ type UnitTest () =
         test 0 "KI"
         test 1 "I"
         test 2 "S(S(KS)K)I"
+
+    [<ClassInitialize>]
+    static member Init(_ : TestContext) =
+        Arb.register<Generators>() |> ignore
+
+    [<TestMethod>]
+    member __.Unparse() =
+        let unparse ski =
+            match ski |> Ski.toString |> Ski.tryParse with
+                | Ok ski' -> ski' = ski
+                | Error _ -> false
+        Check.QuickThrowOnFailure(unparse)

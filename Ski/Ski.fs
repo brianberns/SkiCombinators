@@ -19,7 +19,7 @@ type Ski =
     | Node of Ski * Ski
 
     /// Arbitrary variable.
-    | Variable of name : string
+    | Variable of char
 
     /// Pretty-printing.
     member ski.String =
@@ -32,7 +32,7 @@ type Ski =
             | Node (x, S) -> $"{x.String}S"
             | Node (x, Variable name) -> $"{x.String}{name}"
             | Node (x, y) -> $"{x.String}({y.String})"
-            | Variable str -> str
+            | Variable c -> string c
 
     /// Pretty-printing.
     override this.ToString() =
@@ -71,7 +71,7 @@ module Ski =
             | 'I' -> I
             | 'K' -> K
             | 'S' -> S
-            | c -> Variable (string c)
+            | c -> Variable c
 
         let step nodeOpts = function
 
@@ -107,6 +107,7 @@ module Ski =
 
                     | [] -> Error "Unexpected"
 
+        let str = if isNull str then "" else str
         let result =
             (Ok [None], str)
                 ||> Seq.fold (fun result c ->
