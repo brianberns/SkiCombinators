@@ -6,13 +6,13 @@
 [<StructuredFormatDisplay("{String}")>]
 type Ski =
 
-    /// Identity function.
+    /// Identity combinator.
     | I
 
-    /// Constant function.
+    /// Constant combinator.
     | K
 
-    /// "Substitution" function.
+    /// "Substitution" combinator.
     | S
 
     /// Internal node.

@@ -120,3 +120,8 @@ type UnitTest () =
                 | Ok ski' -> ski' = ski
                 | Error _ -> false
         Check.QuickThrowOnFailure(unparse)
+
+    [<TestMethod>]
+    member __.Reverse() =
+        testParse "S(K(SI))Kab" (fun ski ->
+            Assert.AreEqual("ba", ski |> Ski.eval |> Ski.toString))
