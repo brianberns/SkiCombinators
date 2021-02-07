@@ -86,6 +86,7 @@ type UnitTest () =
     /// https://codegolf.stackexchange.com/questions/198840/ski-calculus-golf-half-of-a-church-numeral
     /// http://wiki.c2.com/?EssAndKayCombinators
     /// https://en.wikipedia.org/wiki/Church_encoding
+    /// https://weblogs.asp.net/dixin/lambda-calculus-via-csharp-6-combinatory-logic
     [<TestMethod>]
     member __.Succ() =
 
