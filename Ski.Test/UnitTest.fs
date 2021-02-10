@@ -103,12 +103,14 @@ type UnitTest () =
 
             // test the successor function
         let test n str =
-            testParse $"({succ})({str})fx" (fun ski ->
+            testParse $"{succ}({str})fx" (fun ski ->
                 let actual = Ski.eval ski
                 Assert.AreEqual(nat (n + 1), actual.String))
         test 0 "KI"
         test 1 "I"
         test 2 "S(S(KS)K)I"
+        test 3 "S(S(KS)K)(S(S(KS)K)I)"
+        test 4 "S(S(KS)K)(S(S(KS)K)(S(S(KS)K)I))"
 
     [<ClassInitialize>]
     static member Init(_ : TestContext) =
